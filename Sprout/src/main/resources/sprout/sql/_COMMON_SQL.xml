@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="common">
+	<!--요청세션이 정상 세션인지 검사 -->
+	<select id="selectValidityCheck" parameterType="hashmap" resultType="hashmap">
+        <![CDATA[
+            SELECT lib.USE_DATA as LICENSE_USE, user.USE_DATA as USER_USE, 
+				if( user.session=#{session}, 'true', 'false') as SESSION, 
+				if( lib.EXPIRE_DATE>now(), 'true', 'false') as EXPIRE
+			FROM license lib, manager user
+			WHERE lib.LICENSE = user.LICENSE AND user.UUID = #{uuid}
+        ]]>
+    </select>
+    
+    <!--도메인과 라이선스 유효성 검사 -->
+    <select id="selectValidityLicense" parameterType="hashmap" resultType="hashmap">
+        <![CDATA[
+            SELECT license.REG_LIMIT REG_LIMIT, (SELECT count(uuid) FROM user WHERE license=#{license}) as REG_COUNT
+			FROM company INNER JOIN license ON company.IDX = license.COMPANY_IDX
+			AND license.license=#{license} and company.DOMAIN = #{domain};
+        ]]>
+    </select>
+</mapper>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="member">
+	<!-- 고객 등록 -->
+	<insert id="insertUser" parameterType="hashmap" >
+        INSERT INTO member(
+			UUID,		ID,			PASSWORD,
+			NAME,		BIRTH_DATE,	SEX,	
+			PHONE,		LEVEL,	PARENT_UUID,
+			SESSION,	REG_DATE,	LICENSE, 
+			USE_DATA,	EMAIL)
+     	VALUES (
+     		#{uuid},	#{id},		HEX(AES_ENCRYPT(#{pw}, 'rjadmstkakr')),
+     		#{name},	#{brith_date},	#{sex},
+     		#{phone},	#{level},	#{parent_uuid},
+     		'',			now(),		#{license},
+     		1,			#{email} );
+    </insert>
+    
+	<!-- 고객 수 -->
+    <select id="selectMemberCount" parameterType="hashmap" resultType="hashmap">
+    	<![CDATA[
+    		SELECT count(case when SEX = 'm' then 1 end) M_CNT
+     			, count(case when SEX = 'f' then 1 end) F_CNT
+ 			FROM member
+ 			WHERE member.LEVEL = 100
+ 				AND member.DOMAIN = #{domain}
+				AND 'Y' = if( 'ROOT' = #{root}, 'Y', if( member.PARENT_UUID = #{root}, 'Y', 'N' ) )
+    	]]>
+    </select>
+    
+    <!-- 고객 목록 -->
+    <select id="selectMemberList" parameterType="hashmap" resultType="hashmap">
+    	<![CDATA[
+    		SELECT *
+ 			FROM member
+ 			WHERE member.LEVEL = 100
+ 				AND member.DOMAIN = #{domain}
+				AND 'Y' = if( 'ROOT' = #{root}, 'Y', if( member.PARENT_UUID = #{root}, 'Y', 'N' ) )
+ 			ORDER BY member.NAME
+ 			LIMIT #{page}, #{limit};
+    	]]>
+    </select>
+</mapper>
